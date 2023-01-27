@@ -1,8 +1,12 @@
+import json
+
+import phonenumbers
+
 from django.http import JsonResponse
 from django.templatetags.static import static
-
-
 from .models import Product
+from .models import Order
+from .models import ProductInOrder
 
 
 def banners_list_api(request):
@@ -58,5 +62,25 @@ def product_list_api(request):
 
 
 def register_order(request):
-    # TODO это лишь заглушка
+    try:
+        data = json.loads(request.body.decode())
+        user_phonenumber = phonenumbers.parse(data['phonenumber'], 'RU')
+        if phonenumbers.is_valid_number_for_region(user_phonenumber, 'RU'):
+            phonenumber = f'+{user_phonenumber.country_code}{user_phonenumber.national_number}'
+            order = Order.objects.create(
+                firstname=data['firstname'],
+                lastname=data['lastname'],
+                phonenumber=phonenumber,
+                address=data['address']
+            )
+            for product in data['products']:
+                ProductInOrder.objects.create(
+                    order=order,
+                    product=Product.objects.get(pk=product['product']),
+                    quantity=product['quantity'],
+                )
+    except ValueError:
+        return JsonResponse({
+            'ValueError': 'bad value',
+        })
     return JsonResponse({})
