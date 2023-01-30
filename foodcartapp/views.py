@@ -1,3 +1,5 @@
+from types import NoneType
+
 import phonenumbers
 
 from django.http import JsonResponse
@@ -64,21 +66,48 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     data = request.data
-    print(data)
-    user_phonenumber = phonenumbers.parse(data['phonenumber'], 'RU')
-    if phonenumbers.is_valid_number_for_region(user_phonenumber, 'RU'):
-        phonenumber = f'+{user_phonenumber.country_code}{user_phonenumber.national_number}'
-        order = Order.objects.create(
-            firstname=data['firstname'],
-            lastname=data['lastname'],
-            phonenumber=phonenumber,
-            address=data['address']
-        )
-        for product in data['products']:
-            ProductInOrder.objects.create(
-                order=order,
-                product=Product.objects.get(pk=product['product']),
-                quantity=product['quantity'],
+    try:
+        products = data['products']
+
+        if isinstance(products, str):
+            return Response({
+                'error': 'product key cannot be a string'}, status=400
             )
 
-    return Response()
+        if isinstance(products, NoneType):
+            return Response({
+                'error': 'product key cannot be missing'}, status=400
+            )
+
+        if not products:
+            return Response({
+                'error': 'products cart is empty'}, status=400
+            )
+
+        phonenumber = phonenumbers.parse(data['phonenumber'], 'RU')
+        is_valid_phonenumber = phonenumbers.is_valid_number_for_region(
+            phonenumber, 'RU'
+        )
+        if not is_valid_phonenumber:
+            return Response({'error': 'wrong phone number'}, status=400)
+
+    except KeyError:
+        return Response(
+            {'error': 'products key not presented or not list'}, status=400
+        )
+
+    valid_phonenumber = f'+{phonenumber.country_code}{phonenumber.national_number}'
+    order = Order.objects.create(
+        firstname=data['firstname'],
+        lastname=data['lastname'],
+        phonenumber=valid_phonenumber,
+        address=data['address']
+    )
+    for product in data['products']:
+        ProductInOrder.objects.create(
+            order=order,
+            product=Product.objects.get(pk=product['product']),
+            quantity=product['quantity'],
+            )
+
+    return Response(['Success order!'], status=200)
