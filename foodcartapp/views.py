@@ -69,32 +69,59 @@ def register_order(request):
     try:
         products = data['products']
 
-        if isinstance(products, str):
-            return Response({
-                'error': 'product key cannot be a string'}, status=400
-            )
-
-        if isinstance(products, NoneType):
-            return Response({
-                'error': 'product key cannot be missing'}, status=400
-            )
-
-        if not products:
-            return Response({
-                'error': 'products cart is empty'}, status=400
-            )
-
-        phonenumber = phonenumbers.parse(data['phonenumber'], 'RU')
-        is_valid_phonenumber = phonenumbers.is_valid_number_for_region(
-            phonenumber, 'RU'
-        )
-        if not is_valid_phonenumber:
-            return Response({'error': 'wrong phone number'}, status=400)
-
     except KeyError:
         return Response(
             {'error': 'products key not presented or not list'}, status=400
         )
+
+    if isinstance(products, str):
+        return Response({
+            'error': 'product key cannot be a string'}, status=400
+        )
+
+    if isinstance(products, NoneType):
+        return Response({
+            'error': 'product key cannot be missing'}, status=400
+        )
+
+    if not products:
+        return Response({
+            'error': 'products cart is empty'}, status=400
+        )
+
+    try:
+        firstname = data['firstname']
+        lastname = data['lastname']
+        address = data['address']
+        if not firstname:
+            return Response(['firstname'], status=400)
+
+        if not isinstance(firstname, str):
+            return Response(['not str'], status=400)
+
+        if not lastname:
+            return Response(['lastname'], status=400)
+
+        if not address:
+            return Response(['address'], status=400)
+
+        phonenumber = phonenumbers.parse(data['phonenumber'], 'RU')
+
+    except KeyError:
+        return Response(
+            {'error': 'order keys not presented'}, status=400
+        )
+
+    except phonenumbers.NumberParseException:
+        return Response(
+            {'error': 'phonenumber'}, status=400
+        )
+
+    is_valid_phonenumber = phonenumbers.is_valid_number_for_region(
+        phonenumber, 'RU'
+    )
+    if not is_valid_phonenumber:
+        return Response({'error': 'wrong phone number'}, status=400)
 
     valid_phonenumber = f'+{phonenumber.country_code}{phonenumber.national_number}'
     order = Order.objects.create(
@@ -104,9 +131,15 @@ def register_order(request):
         address=data['address']
     )
     for product in data['products']:
+        try:
+            product = Product.objects.get(pk=product['product'])
+
+        except Product.DoesNotExist:
+            return Response({'error': 'not pk'}, status=400)
+
         ProductInOrder.objects.create(
             order=order,
-            product=Product.objects.get(pk=product['product']),
+            product=product,
             quantity=product['quantity'],
             )
 
