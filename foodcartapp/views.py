@@ -72,6 +72,8 @@ def register_order(request):
         address=serializer.validated_data['address']
     )
 
+    print(order.pk)
+
     products = serializer.validated_data['products']
 
     for product in products:
@@ -81,4 +83,4 @@ def register_order(request):
             quantity=product['quantity'],
         )
 
-    return Response(['Success order!'], status=200)
+    return Response(serializer.data)
