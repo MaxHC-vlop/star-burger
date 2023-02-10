@@ -130,7 +130,7 @@ class OrderQuerySet(models.QuerySet):
         price = self.prefetch_related('item_products') \
             .annotate(
                 price=Sum(
-                    F('item_products__product__price') * F('item_products__quantity')
+                    F('item_products__price') * F('item_products__quantity')
                 )
             )
 
@@ -182,10 +182,18 @@ class ProductInOrder(models.Model):
     quantity = models.PositiveIntegerField(
         'Количество'
     )
+    price = models.DecimalField(
+        'цена',
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        null=True
+    )
 
     class Meta:
         verbose_name = 'Продукт в заказе'
         verbose_name_plural = 'Продукты в заказе'
 
     def __str__(self):
-        return f'{self.product.name} {self.quantity} {self.order}'
+        order = f'Заказ {self.order.pk}, {self.product} ({self.quantity} шт.) по {self.price} руб.'
+        return order
