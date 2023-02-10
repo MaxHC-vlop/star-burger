@@ -186,8 +186,7 @@ class ProductInOrder(models.Model):
         'цена',
         max_digits=8,
         decimal_places=2,
-        validators=[MinValueValidator(0)],
-        null=True
+        validators=[MinValueValidator(0)]
     )
 
     class Meta:
