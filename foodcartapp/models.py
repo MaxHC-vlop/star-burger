@@ -138,6 +138,16 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
+    RAW = 'Необработанный'
+    PREPARE = 'Готовится'
+    SENT = 'Отправлен'
+    COMPLETED = 'Выполнен'
+    STATUS_CHOICES = (
+        (RAW, 'Необработанный'),
+        (PREPARE, 'Готовится'),
+        (SENT, 'Отправлен'),
+        (COMPLETED, 'Выполнен')
+    )
     firstname = models.CharField(
         max_length=20,
         verbose_name='Имя'
@@ -152,6 +162,13 @@ class Order(models.Model):
     address = models.CharField(
         max_length=100,
         verbose_name='Адрес'
+    )
+    status = models.CharField(
+        verbose_name='Статус заказа',
+        max_length=14,
+        choices=STATUS_CHOICES,
+        default=RAW,
+        db_index=True
     )
 
     objects = OrderQuerySet.as_manager()
