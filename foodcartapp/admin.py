@@ -9,6 +9,8 @@ from .models import Restaurant
 from .models import RestaurantMenuItem
 from .models import Order
 from .models import ProductInOrder
+from django.http import HttpResponseRedirect
+from django.utils.http import url_has_allowed_host_and_scheme
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
@@ -104,7 +106,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProductCategory)
-class ProductAdmin(admin.ModelAdmin):
+class ProductCategoryAdmin(admin.ModelAdmin):
     pass
 
 
@@ -120,3 +122,9 @@ class ProductInOrderInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     inlines = (ProductInOrderInline,)
+
+    def response_change(self, request, obj):
+        default_response = super().response_change(request, obj)
+        if 'next' in request.GET and url_has_allowed_host_and_scheme(request.GET['next'], None):
+            return HttpResponseRedirect(request.GET['next'])
+        return default_response
