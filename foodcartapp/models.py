@@ -144,11 +144,19 @@ class Order(models.Model):
     SENT = 'Отправлен'
     COMPLETED = 'Выполнен'
     STATUS_CHOICES = (
-        (RAW, 'Необработанный'),
-        (PREPARE, 'Готовится'),
-        (SENT, 'Отправлен'),
-        (COMPLETED, 'Выполнен')
+        (RAW, RAW),
+        (PREPARE, PREPARE),
+        (SENT, SENT),
+        (COMPLETED, COMPLETED)
     )
+
+    CASH = 'Наличностью'
+    ELECTRONIC_MONEY = 'Электронно'
+    PAYMENT_CHOICES = (
+        (CASH, CASH),
+        (ELECTRONIC_MONEY, ELECTRONIC_MONEY)
+    )
+
     firstname = models.CharField(
         max_length=20,
         verbose_name='Имя'
@@ -192,6 +200,13 @@ class Order(models.Model):
         db_index=True,
         blank=True,
         null=True
+    )
+    payment_method = models.CharField(
+        verbose_name='Способо оплаты',
+        max_length=14,
+        choices=PAYMENT_CHOICES,
+        default=CASH,
+        db_index=True
     )
 
     objects = OrderQuerySet.as_manager()
