@@ -127,6 +127,26 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
+    def get_restaurants(self):
+        orders = self.prefetch_related('item_products')
+        menu_items_available = RestaurantMenuItem.objects.filter(
+            availability=True
+        ).select_related('restaurant', 'product')
+
+        for order in orders:
+            order.restaurants = set()
+            for order_item in order.item_products.all():
+                product_restaurants = [
+                    rest_item.restaurant for rest_item in menu_items_available
+                    if order_item.product.id == rest_item.product.id
+                ]
+
+                if not order.restaurants:
+                    order.restaurants = set(product_restaurants)
+                order.restaurants &= set(product_restaurants)
+
+        return orders
+
     def with_price(self):
         price = self.prefetch_related('item_products') \
             .annotate(
@@ -139,22 +159,16 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
-    RAW = 'Необработанный'
-    PREPARE = 'Готовится'
-    SENT = 'Отправлен'
-    COMPLETED = 'Выполнен'
     STATUS_CHOICES = (
-        (RAW, RAW),
-        (PREPARE, PREPARE),
-        (SENT, SENT),
-        (COMPLETED, COMPLETED)
+        ('RAW', 'Необработанный'),
+        ('PREPARE', 'Готовится'),
+        ('SENT', 'Отправлен'),
+        ('COMPLETED', 'Выполнен')
     )
 
-    CASH = 'Наличностью'
-    ELECTRONIC_MONEY = 'Электронно'
     PAYMENT_CHOICES = (
-        (CASH, CASH),
-        (ELECTRONIC_MONEY, ELECTRONIC_MONEY)
+        ('CARD', 'Электронно'),
+        ('CASH', 'Наличностью'),
     )
 
     firstname = models.CharField(
@@ -176,7 +190,7 @@ class Order(models.Model):
         verbose_name='Статус заказа',
         max_length=14,
         choices=STATUS_CHOICES,
-        default=RAW,
+        default='Необработанный',
         db_index=True
     )
     comment = models.TextField(
@@ -205,8 +219,16 @@ class Order(models.Model):
         verbose_name='Способо оплаты',
         max_length=14,
         choices=PAYMENT_CHOICES,
-        default=CASH,
+        default='Не указан',
         db_index=True
+    )
+    restaurant = models.ForeignKey(
+        Restaurant,
+        on_delete=models.SET_NULL,
+        verbose_name='ресторан',
+        related_name='order_restaurant',
+        blank=True,
+        null=True
     )
 
     objects = OrderQuerySet.as_manager()
