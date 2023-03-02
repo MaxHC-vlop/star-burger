@@ -1,15 +1,18 @@
+import requests
+
+from geopy import distance
+
+from django.conf import settings
 from django import forms
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
-
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
-
 from foodcartapp.models import Product, Restaurant
-from foodcartapp.models import RestaurantMenuItem, Order
+from foodcartapp.models import Order
 
 
 class Login(forms.Form):
@@ -71,8 +74,13 @@ def view_products(request):
 
     products_with_restaurant_availability = []
     for product in products:
-        availability = {item.restaurant_id: item.availability for item in product.menu_items.all()}
-        ordered_availability = [availability.get(restaurant.id, False) for restaurant in restaurants]
+        availability = {
+            item.restaurant_id:
+            item.availability for item in product.menu_items.all()
+        }
+        ordered_availability = [
+            availability.get(restaurant.id, False) for restaurant in restaurants
+        ]
 
         products_with_restaurant_availability.append(
             (product, ordered_availability)
@@ -91,9 +99,60 @@ def view_restaurants(request):
     })
 
 
+def fetch_coordinates(apikey, address):
+    base_url = "https://geocode-maps.yandex.ru/1.x"
+    response = requests.get(base_url, params={
+        "geocode": address,
+        "apikey": apikey,
+        "format": "json",
+    })
+    response.raise_for_status()
+    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
+
+    if not found_places:
+        return None
+
+    most_relevant = found_places[0]
+    lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
+    return lon, lat
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
+    yandex_api_key = settings.YANDEX_API_KEY
     orders = Order.objects.all().with_price().get_restaurants()
+    for order in orders:
+        try:
+            order_coordinates = fetch_coordinates(
+                yandex_api_key, order.address
+            )
+        except request.RequestException:
+            order.restaurant_distances = None
+            continue
+
+        for rest in order.restaurants:
+            if not rest.longitude or not rest.latitude:
+                try:
+                    rest_coordinates = fetch_coordinates(
+                        yandex_api_key, rest.address
+                    )
+                except request.RequestException:
+                    order.restaurant_distances = None
+                    continue
+                rest.longitude = rest_coordinates[0]
+                rest.latitude = rest_coordinates[1]
+                rest.save()
+
+            rest_distance = distance.distance(
+                (rest.latitude, rest.longitude),
+                (order_coordinates[1], order_coordinates[0])
+            ).km
+            order.restaurant_distances.append(
+                (rest.name, round(rest_distance, 2))
+            )
+            order.restaurant_distances = sorted(
+                order.restaurant_distances
+            )
 
     return render(request, template_name='order_items.html', context={
         'orders': orders

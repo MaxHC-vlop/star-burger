@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import F, Sum
 from django.utils import timezone
@@ -19,6 +19,24 @@ class Restaurant(models.Model):
         'контактный телефон',
         max_length=50,
         blank=True,
+    )
+    longitude = models.FloatField(
+        'Долгота',
+        validators=[
+            MaxValueValidator(-180),
+            MinValueValidator(180)
+        ],
+        blank=True,
+        null=True
+    )
+    latitude = models.FloatField(
+        'Широта',
+        validators=[
+            MaxValueValidator(-90),
+            MinValueValidator(90)
+        ],
+        blank=True,
+        null=True
     )
 
     class Meta:
@@ -134,8 +152,10 @@ class OrderQuerySet(models.QuerySet):
         ).select_related('restaurant', 'product')
 
         for order in orders:
+            order.restaurant_distances = []
             order.restaurants = set()
-            for order_item in order.item_products.all():
+            order_items = order.item_products.select_related('product')
+            for order_item in order_items:
                 product_restaurants = [
                     rest_item.restaurant for rest_item in menu_items_available
                     if order_item.product.id == rest_item.product.id
@@ -271,5 +291,4 @@ class ProductInOrder(models.Model):
         verbose_name_plural = 'Продукты в заказе'
 
     def __str__(self):
-        order = f'Заказ {self.order.pk}, {self.product} ({self.quantity} шт.) по {self.price} руб.'
-        return order
+        return f'Заказ {self.order.pk}'
