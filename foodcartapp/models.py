@@ -147,7 +147,7 @@ class RestaurantMenuItem(models.Model):
 class OrderQuerySet(models.QuerySet):
     def get_restaurants(self):
         orders = self.prefetch_related('item_products')
-        menu_items_available = RestaurantMenuItem.objects.filter(
+        available_menu_items = RestaurantMenuItem.objects.filter(
             availability=True
         ).select_related('restaurant', 'product')
 
@@ -157,7 +157,7 @@ class OrderQuerySet(models.QuerySet):
             order_items = order.item_products.select_related('product')
             for order_item in order_items:
                 product_restaurants = [
-                    rest_item.restaurant for rest_item in menu_items_available
+                    rest_item.restaurant for rest_item in available_menu_items
                     if order_item.product.id == rest_item.product.id
                 ]
 

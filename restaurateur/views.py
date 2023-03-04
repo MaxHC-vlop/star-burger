@@ -1,18 +1,18 @@
-import requests
-
 from geopy import distance
-
-from django.conf import settings
 from django import forms
+from django.conf import settings
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
+from requests import RequestException
 
 from foodcartapp.models import Product, Restaurant
 from foodcartapp.models import Order
+from places.models import Place
+from places.fetch_place import get_place, fetch_coordinates
 
 
 class Login(forms.Form):
@@ -99,61 +99,53 @@ def view_restaurants(request):
     })
 
 
-def fetch_coordinates(apikey, address):
-    base_url = "https://geocode-maps.yandex.ru/1.x"
-    response = requests.get(base_url, params={
-        "geocode": address,
-        "apikey": apikey,
-        "format": "json",
-    })
-    response.raise_for_status()
-    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
-
-    if not found_places:
-        return None
-
-    most_relevant = found_places[0]
-    lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
-    return lon, lat
-
-
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     yandex_api_key = settings.YANDEX_API_KEY
-    orders = Order.objects.all().with_price().get_restaurants()
-    for order in orders:
-        try:
-            order_coordinates = fetch_coordinates(
-                yandex_api_key, order.address
-            )
-        except request.RequestException:
-            order.restaurant_distances = None
-            continue
 
-        for rest in order.restaurants:
-            if not rest.longitude or not rest.latitude:
+    orders = Order.objects.all() \
+        .with_price().get_restaurants()
+    order_places = [order.address for order in orders]
+    places = Place.objects.filter(address__in=order_places)
+
+    for order in orders:
+        if order.address not in places.values_list('address', flat=True):
+            try:
+                place = get_place(yandex_api_key, order.address)
+            except RequestException:
+                order.restaurant_distances = None
+                continue
+
+        for place_db in places:
+            if place_db.address == order.address:
+                place = place_db
+
+        for restaurant in order.restaurants:
+            if not restaurant.longitude or not restaurant.latitude:
                 try:
-                    rest_coordinates = fetch_coordinates(
-                        yandex_api_key, rest.address
+                    restaurant_coordinates = fetch_coordinates(
+                        yandex_api_key, restaurant.address
                     )
                 except request.RequestException:
                     order.restaurant_distances = None
                     continue
-                rest.longitude = rest_coordinates[0]
-                rest.latitude = rest_coordinates[1]
-                rest.save()
 
-            rest_distance = distance.distance(
-                (rest.latitude, rest.longitude),
-                (order_coordinates[1], order_coordinates[0])
+                restaurant.longitude, restaurant.latitude = restaurant_coordinates
+                restaurant.save()
+
+            restaurant_distance = distance.distance(
+                (restaurant.latitude, restaurant.longitude),
+                (place.latitude, place.longitude)
             ).km
             order.restaurant_distances.append(
-                (rest.name, round(rest_distance, 2))
+                (restaurant.name, round(restaurant_distance, 2))
             )
             order.restaurant_distances = sorted(
-                order.restaurant_distances
+                order.restaurant_distances,
+                key=lambda rest_dist: rest_dist[1]
             )
 
-    return render(request, template_name='order_items.html', context={
-        'orders': orders
-    })
+    return render(
+        request, template_name='order_items.html',
+        context={'orders': orders}
+        )
