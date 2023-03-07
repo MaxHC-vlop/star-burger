@@ -295,4 +295,4 @@ class ProductInOrder(models.Model):
         verbose_name_plural = 'Продукты в заказе'
 
     def __str__(self):
-        return f'Заказ {self.order.pk}'
+        return f'Заказ {self.order.pk}, {self.order.phonenumber}, {self.product} {self.quantity} шт.'
