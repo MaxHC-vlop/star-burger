@@ -277,7 +277,11 @@ class ProductInOrder(models.Model):
         db_index=True
         )
     quantity = models.PositiveIntegerField(
-        'Количество'
+        'Количество',
+        validators=[
+            MaxValueValidator(100),
+            MinValueValidator(1)
+        ],
     )
     price = models.DecimalField(
         'цена',
