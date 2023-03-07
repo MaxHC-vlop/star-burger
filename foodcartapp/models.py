@@ -218,7 +218,7 @@ class Order(models.Model):
         blank=True,
         db_index=True
     )
-    registrated_at = models.DateTimeField(
+    registered_at = models.DateTimeField(
         verbose_name='Зарегистрирован',
         db_index=True,
         default=timezone.now
@@ -236,7 +236,7 @@ class Order(models.Model):
         null=True
     )
     payment_method = models.CharField(
-        verbose_name='Способо оплаты',
+        verbose_name='Способ оплаты',
         max_length=14,
         choices=PAYMENT_CHOICES,
         default='Не указан',
