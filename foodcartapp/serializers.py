@@ -1,7 +1,4 @@
-import phonenumbers
-
-from phonenumber_field import serializerfields
-from foodcartapp.models import Product
+from phonenumber_field.serializerfields import PhoneNumberField
 from foodcartapp.models import Order
 from foodcartapp.models import ProductInOrder
 from rest_framework import serializers
@@ -22,6 +19,7 @@ class OrderSerializer(serializers.ModelSerializer):
         allow_empty=False,
         write_only=True
     )
+    phonenumber = PhoneNumberField(region="CA")
 
     class Meta:
         model = Order
