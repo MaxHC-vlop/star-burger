@@ -3,6 +3,11 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import F, Sum
 from django.utils import timezone
+from geopy import distance
+
+
+from places.models import Place
+from places.fetch_place import get_place, fetch_coordinates
 
 
 class Restaurant(models.Model):
@@ -145,6 +150,16 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
+    def with_price(self):
+        price = self.prefetch_related('item_products') \
+            .annotate(
+                price=Sum(
+                    F('item_products__price') * F('item_products__quantity')
+                )
+            )
+
+        return price
+
     def get_restaurants(self):
         orders = self.prefetch_related('item_products')
         available_menu_items = RestaurantMenuItem.objects.filter(
@@ -167,15 +182,41 @@ class OrderQuerySet(models.QuerySet):
 
         return orders
 
-    def with_price(self):
-        price = self.prefetch_related('item_products') \
-            .annotate(
-                price=Sum(
-                    F('item_products__price') * F('item_products__quantity')
-                )
-            )
+    def get_distance_restaurants(self, yandex_api_key):
+        orders = self.get_restaurants()
+        order_places = [order.address for order in orders]
+        places = Place.objects.filter(address__in=order_places)
 
-        return price
+        for order in orders:
+            if order.address not in places.values_list('address', flat=True):
+                place = get_place(yandex_api_key, order.address)
+
+            for place_db in places:
+                if place_db.address == order.address:
+                    place = place_db
+
+            for restaurant in order.restaurants:
+                if not restaurant.longitude or not restaurant.latitude:
+                    restaurant_coordinates = fetch_coordinates(
+                        yandex_api_key, restaurant.address
+                    )
+
+                    restaurant.longitude, restaurant.latitude = restaurant_coordinates
+                    restaurant.save()
+
+                restaurant_distance = distance.distance(
+                    (restaurant.latitude, restaurant.longitude),
+                    (place.latitude, place.longitude)
+                ).km
+                order.restaurant_distances.append(
+                    (restaurant.name, round(restaurant_distance, 2))
+                )
+                order.restaurant_distances = sorted(
+                    order.restaurant_distances,
+                    key=lambda rest_dist: rest_dist[1]
+                )
+
+        return orders
 
 
 class Order(models.Model):
