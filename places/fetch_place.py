@@ -8,8 +8,15 @@ def get_place(api_key, address):
         address=address
     )
     if not place.longitude or not place.latitude:
-        place.longitude, place.latitude = fetch_coordinates(api_key, address)
-        place.save()
+        try:
+            place.longitude, place.latitude = fetch_coordinates(api_key, address)
+            place.save()
+
+        except requests.exceptions.HTTPError:
+            return None
+
+        except requests.exceptions.ConnectionError:
+            return None
 
     return place
 
