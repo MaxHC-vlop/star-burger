@@ -8,10 +8,6 @@ class Place(models.Model):
         max_length=100,
         unique=True,
     )
-    created_add = models.TimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания'
-    )
     longitude = models.FloatField(
         'Координата адреса (Долгота)',
         validators=[
