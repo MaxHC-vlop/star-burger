@@ -1,5 +1,6 @@
 import phonenumbers
 
+from phonenumber_field import serializerfields
 from foodcartapp.models import Product
 from foodcartapp.models import Order
 from foodcartapp.models import ProductInOrder
@@ -14,22 +15,12 @@ class ProductInOrderSerializer(serializers.ModelSerializer):
             'quantity'
         ]
 
-    def validate_products(self, value):
-        for product in value:
-            key = product['product']
-            try:
-                Product.objects.get(pk=key)
-
-            except Product.DoesNotExist:
-                raise serializers.ValidationError(f'Недопустимый первичный ключ {key}.')
-
-        return value
-
 
 class OrderSerializer(serializers.ModelSerializer):
     products = ProductInOrderSerializer(
         many=True,
         allow_empty=False,
+        write_only=True
     )
 
     class Meta:
@@ -42,12 +33,12 @@ class OrderSerializer(serializers.ModelSerializer):
             'products'
         ]
 
-    def validate_phonenumber(self, value):
-        phonenumber = phonenumbers.parse(value, 'RU')
-        valid_phonenumber = phonenumbers.is_valid_number_for_region(
-            phonenumber, 'RU'
+    def create(self, validated_data):
+        order = Order.objects.create(
+            firstname=validated_data['firstname'],
+            lastname=validated_data['lastname'],
+            phonenumber=validated_data['phonenumber'],
+            address=validated_data['address']
         )
-        if not valid_phonenumber:
-            raise serializers.ValidationError('Введен некорректный номер телефона.')
 
-        return value
+        return order
