@@ -67,15 +67,6 @@ def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     serializer.validated_data
-    order = serializer.save()
-
-    products = serializer.validated_data['products']
-    for product in products:
-        ProductInOrder.objects.create(
-            order=order,
-            product=product['product'],
-            quantity=product['quantity'],
-            price=product['product'].price
-        )
+    serializer.save()
 
     return Response(serializer.data)
