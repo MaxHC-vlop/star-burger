@@ -39,4 +39,13 @@ class OrderSerializer(serializers.ModelSerializer):
             address=validated_data['address']
         )
 
+        products = self.validated_data['products']
+        for product in products:
+            ProductInOrder.objects.create(
+                order=order,
+                product=product['product'],
+                quantity=product['quantity'],
+                price=product['product'].price
+            )
+
         return order
