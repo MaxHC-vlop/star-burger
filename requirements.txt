@@ -7,3 +7,4 @@ geopy==2.3.0
 requests==2.28.2
 phonenumbers==8.13.4
 django-phonenumber-field==7.0.2
+rollbar==0.16.3
