@@ -1,5 +1,7 @@
 # Сайт доставки еды Star Burger
 
+Сайт работает по адресу [kiloplopgaz.ru](https://kiloplopgaz.ru/)
+
 Это сайт сети ресторанов Star Burger. Здесь можно заказать превосходные бургеры с доставкой на дом.
 
 ![скриншот сайта](https://dvmn.org/filer/canonical/1594651635/686/)
@@ -54,11 +56,32 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-Определите переменные окружения . Получить ключ от яндекс апи можно [здесь](https://developer.tech.yandex.ru/services/). Создать файл `.env` в каталоге `star_burger/` и положите туда такой код:
+Определите обязательные переменные окружения `SECRET_KEY`, `YANDEX_GEO_APIKEY` и `ROLLBAR_POST_SERVER_ITEM_ACCESS_TOKEN`.
+Необязательные переменные окружения: `ROLLBAR_ENVIRONMENT_NAME`
+Создать файл `.env` в каталоге `star_burger/` и положите туда такой код:
 ```sh
 SECRET_KEY=django-insecure-0if40nf4nf93n4
-YANDEX_API_KEY=your_api_key
+YANDEX_GEO_APIKEY=<Ваш ключ>
+ROLLBAR_POST_SERVER_ITEM_ACCESS_TOKEN=<Ваш токен>
+POSTGRES_DB_URL=postgres://USER:PASSWORD@HOST:PORT/NAME
 ```
+`YANDEX_GEO_APIKEY` - это ключ к API [Яндекс Геокодера](https://yandex.ru/dev/maps/geocoder/)
+Вы можете заполнить этот ключ фейковой строкой, но тогда сайт не будет рассчитывать расстояния между ресторанами и адресами заказа.
+
+`ROLLBAR_POST_SERVER_ITEM_ACCESS_TOKEN` - это токен для мониторинга ошибок в сервисе [Rollbar](https://rollbar.com/)
+При регистрации в [Rollbar](https://rollbar.com/) выбирайте SDK Django
+Ошибки 404 игнорируются
+Вы можете заполнить этот ключ фейковой строкой, но тогда ошибки не будут регистрироваться
+
+`ROLLBAR_ENVIRONMENT_NAME` - название топика, куда [Rollbar](https://rollbar.com/) будет складывать ошибки (по умолчанию `development`)
+
+`POSTGRES_DB_URL` - url строка подключения к БД postgres вида `postgres://USER:PASSWORD@HOST:PORT/NAME`
+где:
+`USER` - имя пользователя БД
+`PASSWORD` - пароль пользователя БД
+`HOST` - ip адрес сервера с БД
+`PORT` - порт сервера с БД
+`NAME` - имя БД
 
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
 
@@ -134,6 +157,11 @@ Parcel будет следить за файлами в каталоге `bundle
 
 **Сбросьте кэш браузера <kbd>Ctrl-F5</kbd>.** Браузер при любой возможности старается кэшировать файлы статики: CSS, картинки и js-код. Порой это приводит к странному поведению сайта, когда код уже давно изменился, но браузер этого не замечает и продолжает использовать старую закэшированную версию. В норме Parcel решает эту проблему самостоятельно. Он следит за пересборкой фронтенда и предупреждает JS-код в браузере о необходимости подтянуть свежий код. Но если вдруг что-то у вас идёт не так, то начните ремонт со сброса браузерного кэша, жмите <kbd>Ctrl-F5</kbd>.
 
+## Деплой обновлений
+На сервере выполнить команду
+```sh
+~/deploy_star_burger.sh
+```
 
 ## Как запустить prod-версию сайта
 
