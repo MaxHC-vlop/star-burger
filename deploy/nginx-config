@@ -1,0 +1,36 @@
+# location /etc/nginx/sites-enabled/starburder
+
+server {
+    server_name kiloplopgaz.ru;
+
+    location / {
+      include '/etc/nginx/proxy_params';
+      proxy_pass http://127.0.0.1:8080/;
+    }
+
+    location /media/ {
+        alias /opt/star-burger/media/;
+    }
+    location /static/ {
+        alias /opt/star-burger/staticfiles/;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/kiloplopgaz.ru/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/kiloplopgaz.ru/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+server {
+    if ($host = kiloplopgaz.ru) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 77.223.98.8:80;
+    server_name kiloplopgaz.ru;
+    return 404; # managed by Certbot
+
+
+}
