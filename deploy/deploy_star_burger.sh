@@ -10,10 +10,10 @@ echo "frontend ok"
 ./env/bin/python3.10 manage.py collectstatic --noinput
 ./env/bin/python3.10 manage.py migrate --noinput
 echo "backend ok"
-systemctl daemon-reload
-systemctl reload nginx
-systemctl stop django.service
-systemctl start django.service
+sudo systemctl daemon-reload
+sudo systemctl reload nginx
+sudo systemctl stop django.service
+sudo systemctl start django.service
 echo "systemctl start ok"
 last_commit_hash=$(git rev-parse HEAD)
 echo $last_commit_hash
