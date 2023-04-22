@@ -17,8 +17,7 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
-ROLLBAR_POST_SERVER_ITEM_ACCESS_TOKEN = env.str('ROLLBAR_ACCESS_TOKEN')
-ROLLBAR_ENVIRONMENT_NAME = env.str('ROLLBAR_ENVIRONMENT_NAME', 'development')
+ROLLBAR_ENABLE = env.str('ROLLBAR_ENABLE')
 POSTGRES_DB_URL = env.str('POSTGRES_DB_URL')
 
 INSTALLED_APPS = [
@@ -71,12 +70,16 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.redirects.RedirectsPanel',
 ]
 
-ROLLBAR = {
-    'access_token': ROLLBAR_POST_SERVER_ITEM_ACCESS_TOKEN,
-    'environment': ROLLBAR_ENVIRONMENT_NAME,
-    'code_version': '1.0',
-    'root': BASE_DIR,
-}
+if ROLLBAR_ENABLE:
+    ROLLBAR_POST_SERVER_ITEM_ACCESS_TOKEN = env.str('ROLLBAR_ACCESS_TOKEN')
+    ROLLBAR_ENVIRONMENT_NAME = env.str('ROLLBAR_ENVIRONMENT_NAME', 'development')
+
+    ROLLBAR = {
+        'access_token': ROLLBAR_POST_SERVER_ITEM_ACCESS_TOKEN,
+        'environment': ROLLBAR_ENVIRONMENT_NAME,
+        'code_version': '1.0',
+        'root': BASE_DIR,
+    }
 
 TEMPLATES = [
     {
