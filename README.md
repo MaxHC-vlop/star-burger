@@ -85,6 +85,8 @@ POSTGRES_DB_URL=postgres://USER:PASSWORD@HOST:PORT/NAME
 
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
 
+
+
 ```sh
 python manage.py migrate
 ```
