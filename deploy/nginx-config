@@ -31,6 +31,4 @@ server {
     listen 77.223.98.8:80;
     server_name kiloplopgaz.ru;
     return 404; # managed by Certbot
-
-
 }
