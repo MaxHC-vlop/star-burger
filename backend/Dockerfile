@@ -5,9 +5,11 @@ ENV PYTHONUNBUFFERED 1
 ENV PIP_ROOT_USER_ACTION=ignore
 
 WORKDIR /opt/app
+
 COPY requirements.txt /opt/app/
-RUN pip install -r --disable-pip-version-check requirements.txt
-COPY . /opt/app
+RUN pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
+
+COPY . .
 
 EXPOSE 8080
 
