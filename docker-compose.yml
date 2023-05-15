@@ -1,19 +1,19 @@
 version: "3.9"
 
 services:
-  # db:
-  #   image: postgres:12.0-alpine
-  #   # volumes:
-  #   #   - db_data:/var/lib/postgresql/data
-  #   environment:
-  #     POSTGRES_DB: ${POSTGRES_DB}
-  #     POSTGRES_USER: ${POSTGRES_USER}
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  #   ports:
-  #     - 5436:5432
+  db:
+    image: postgres:14.6-alpine
+    # volumes:
+    #   - db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   backend:
     build: backend
+    command:
+      bash entrypoint.sh
     volumes:
       - static:/opt/app/staticfiles
     environment:
@@ -26,27 +26,24 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - nginx
-      - frontend
-    command:
-      bash entrypoint.sh
-    # networks:
-    #   - mynetwork
+    #   # - nginx
+    #   # - frontend
+      - db
 
-  frontend:
-    build: frontend
-    volumes:
-      - static:/opt/app/bundles
-    command: node_modules/.bin/parcel watch ./bundles-src/index.js --dist-dir bundles --public-url "./"
-    ports:
-      - "1234:1234"
+  # frontend:
+  #   build: frontend
+  #   volumes:
+  #     - static:/opt/app/bundles
+  #   command: node_modules/.bin/parcel watch ./bundles-src/index.js --dist-dir bundles --public-url "./"
+  #   ports:
+  #     - "1234:1234"
 
-  nginx:
-    build: nginx
-    volumes:
-      - static:/opt/app/static
-    ports:
-      - "80:80"
+  # nginx:
+  #   build: nginx
+  #   volumes:
+  #     - static:/opt/app/static
+  #   ports:
+  #     - "80:80"
 
 volumes:
   static:
