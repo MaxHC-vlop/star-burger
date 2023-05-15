@@ -2,10 +2,7 @@ FROM node:16-alpine3.14
 
 WORKDIR /opt/app
 
-COPY package*.json /opt/app/
+COPY package*.json ./
+COPY /bundles-src ./bundles-src/
 
-RUN npm ci --only=production && npm cache clean --force
-
-COPY . .
-
-EXPOSE 3000
+RUN npm ci --dev

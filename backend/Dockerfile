@@ -7,9 +7,9 @@ ENV PIP_ROOT_USER_ACTION=ignore
 WORKDIR /opt/app
 
 COPY requirements.txt /opt/app/
-RUN pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
+RUN pip install --no-cache-dir --disable-pip-version-check -r requirements.txt && apk add bash
 
-COPY . .
+COPY . /opt/app
 
 EXPOSE 8080
 
