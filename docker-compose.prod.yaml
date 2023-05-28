@@ -13,7 +13,7 @@ services:
     restart: always
     build: backend
     command:
-      gunicorn star_burger.wsgi:application --bind 0.0.0.0:8080
+      bash entrypoint.prod.sh
     volumes:
       - ./static:/opt/app/staticfiles
       - ./media:/opt/app/media
