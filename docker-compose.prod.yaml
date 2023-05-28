@@ -25,6 +25,7 @@ services:
       - db
 
   nginx:
+    restart: always
     image: staticfloat/nginx-certbot
     volumes:
       - ./static:/opt/app/static
