@@ -25,26 +25,22 @@ services:
       - db
 
   nginx:
-    restart: always
-    build: nginx_ssl
+    image: staticfloat/nginx-certbot
     volumes:
-      - ./static:/opt/app/static
-      - ./media:/opt/app/media
-      - ./volume/nginx/conf/:/etc/nginx/conf.d/:ro
-      - ./volume/certbot/www/:/var/www/certbot/:ro
+      - static_volume:/opt/static
+      - media_volume:/opt/media
+      - ./nginx_ssl:/etc/nginx/user.conf.d:ro
+      - letsencrypt:/etc/letsencrypt
+    env_file:
+      - .env
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80/tcp
+      - 443:443/tcp
     depends_on:
-      - backend
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - ./volume/certbot/www/:/var/www/certbot/:rw
-      - ./volume/certbot/conf/:/etc/letsencrypt/:rw
+      - web
 
 volumes:
   static:
   media:
   db_data:
+  letsencrypt:
