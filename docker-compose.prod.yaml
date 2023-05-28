@@ -27,8 +27,8 @@ services:
   nginx:
     image: staticfloat/nginx-certbot
     volumes:
-      - static_volume:/opt/static
-      - media_volume:/opt/media
+      - ./static:/opt/app/static
+      - ./media:/opt/app/media
       - ./nginx_ssl:/etc/nginx/user.conf.d:ro
       - letsencrypt:/etc/letsencrypt
     env_file:
