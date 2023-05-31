@@ -168,7 +168,7 @@ Parcel будет следить за файлами в каталоге `bundle
 ## Docker-compose
 
 <details>
-<summary>Цели проекта</summary>
+<summary>Работа с докером</summary>
 
 Должен быть установлен [Docker](https://docs.docker.com/engine/install/) и [docker-compose](https://docs.docker.com/compose/install/)
 - Создайте `.env` в одной директории с docker-compose файлами
