@@ -21,6 +21,8 @@
 
 ### Как собрать бэкенд
 
+<details>
+<summary>Туториал по бэкенду</summary>
 Скачайте код:
 ```sh
 git clone https://github.com/devmanorg/star-burger.git
@@ -98,9 +100,12 @@ python manage.py runserver
 ```
 
 Откройте сайт в браузере по адресу [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Если вы увидели пустую белую страницу, то не пугайтесь, выдохните. Просто фронтенд пока ещё не собран. Переходите к следующему разделу README.
+</details>
 
 ### Собрать фронтенд
 
+<details>
+<summary>Туториал по фронтенд</summary>
 **Откройте новый терминал**. Для работы сайта в dev-режиме необходима одновременная работа сразу двух программ `runserver` и `parcel`. Каждая требует себе отдельного терминала. Чтобы не выключать `runserver` откройте для фронтенда новый терминал и все нижеследующие инструкции выполняйте там.
 
 [Установите Node.js](https://nodejs.org/en/), если у вас его ещё нет.
@@ -158,31 +163,50 @@ Parcel будет следить за файлами в каталоге `bundle
 Каталог `bundles` в репозитории особенный — туда Parcel складывает результаты своей работы. Эта директория предназначена исключительно для результатов сборки фронтенда и потому исключёна из репозитория с помощью `.gitignore`.
 
 **Сбросьте кэш браузера <kbd>Ctrl-F5</kbd>.** Браузер при любой возможности старается кэшировать файлы статики: CSS, картинки и js-код. Порой это приводит к странному поведению сайта, когда код уже давно изменился, но браузер этого не замечает и продолжает использовать старую закэшированную версию. В норме Parcel решает эту проблему самостоятельно. Он следит за пересборкой фронтенда и предупреждает JS-код в браузере о необходимости подтянуть свежий код. Но если вдруг что-то у вас идёт не так, то начните ремонт со сброса браузерного кэша, жмите <kbd>Ctrl-F5</kbd>.
+</details>
 
-## Деплой обновлений
-На сервере выполнить команду
-```sh
-~/deploy_star_burger.sh
+## Docker-compose
+
+<details>
+<summary>Цели проекта</summary>
+
+Должен быть установлен [Docker](https://docs.docker.com/engine/install/) и [docker-compose](https://docs.docker.com/compose/install/)
+- Создайте `.env` в одной директории с docker-compose файлами
+```bash
+touch .env
+```
+- Добавьте в него следующие переменные окружения:
+  - `SECRET_KEY` - секретный ключ [джанго](https://djecrety.ir/)
+  - `YANDEX_API_KEY` - ключ к яндекс [апи](https://yandex.ru/dev/site/api/concepts/access.html)
+  - `ROLLBAR_ACCESS_TOKEN` - ключ к [роллбар](https://docs.rollbar.com/reference/getting-started-1)
+  - `DEBUG` - режим [дебаг](https://docs.djangoproject.com/en/4.2/ref/settings/#:~:text=DEBUG%C2%B6-,Default%3A%20False,-A%20boolean%20that)
+  - `ALLOWED_HOSTS` - [доверенные хосты](https://docs.djangoproject.com/en/4.2/ref/settings/#:~:text=ALLOWED_HOSTS%C2%B6,this%20security%20protection.)
+  - `POSTGRES_DB_URL` - [](https://github.com/jazzband/dj-database-url)
+  - `POSTGRES_DB` - название базы данных
+  - `POSTGRES_USER` - имя юзера бд
+  - `POSTGRES_PASSWORD` - пароль от бд
+  - `CERTBOT_EMAIL` - твой мэйл
+
+- Запуск dev версии:
+```bash
+# Для локальной разработки
+sudo docker-compose -f docker-compose.yml up -d
 ```
 
-## Как запустить prod-версию сайта
-
-Собрать фронтенд:
-
-```sh
-./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
+- Запуск prod версии:
+```bash
+sh deploy_docker.sh
 ```
 
-Настроить бэкенд: создать файл `.env` в каталоге `star_burger/` со следующими настройками:
-
-- `DEBUG` — дебаг-режим. Поставьте `False`.
-- `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
-- `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
+</details>
 
 ## Цели проекта
 
+<details>
+<summary>Цели проекта</summary>
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
 
 Где используется репозиторий:
 
 - Второй и третий урок [учебного курса Django](https://dvmn.org/modules/django/)
+</details>
