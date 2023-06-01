@@ -2,8 +2,8 @@
 
 git pull origin master
 echo "git ok"
-docker compose -f docker-compose.prod_ssl.yml build
-docker compose -f docker-compose.prod_ssl.yml up -d
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
 echo "Docker-compose ok"
 
 last_commit_hash=$(git rev-parse HEAD)
